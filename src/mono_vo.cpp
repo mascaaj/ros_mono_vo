@@ -7,10 +7,14 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/video/tracking.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
-#include "../include/ros_mono_vo/vo_features.h" //TODO Don't make relative import.
+#include <ros_mono_vo/vo_features.h> //TODO Don't make relative import.
 
 //Algorithm Outline:
 //Capture images: ItIt, It+1It+1,
@@ -34,6 +38,8 @@ std::vector<cv::Point2f> points1, points2, prevFeatures, currFeatures; //Vectors
 std::vector<uchar> status;
 double focal_length;
 double scale = 2.00; //TODO Figure out how to add or implement scaling function.
+char text [100];
+char text2 [100];
 
 bool init= false;
 
@@ -41,7 +47,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& image, const sensor_msgs::C
 {
   try
   {
-    cv::imshow("view", cv_bridge::toCvShare(image, "bgr8")->image);
+    // cv::imshow("view", cv_bridge::toCvShare(image, "bgr8")->image);
       // Init logic to ensure two images are captured for initial features
     if (!init)
     {
@@ -139,8 +145,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& image, const sensor_msgs::C
             prevFeatures = currFeatures;
 
             // sprintf(text, "Coordinates: x = %02fm y = %02fm z = %02fm", t_f.at<double>(0), t_f.at<double>(1), t_f.at<double>(2));
-
-            // std::cout << text << std::endl;
+            // sprintf(text2, "Rotation: r = %02f p = %02f y = %02f", R_f.at<double>(0), R_f.at<double>(1), R_f.at<double>(2));
+            std::cout << t_f << std::endl;
+            std::cout << R_f << std::endl;
     }
     cv::waitKey(30);
 
@@ -156,14 +163,14 @@ int main(int argc, char **argv)
     std::cout << "Starting Mono VO node with Cam info...  " << std::endl;
     ros::init(argc, argv, "mono_vo");
     ros::NodeHandle nh;
-    cv::namedWindow("view");
-    cv::startWindowThread();
-    message_filters::Subscriber<sensor_msgs::Image> image_sub(nh, "/usb_cam/image_rect_color", 1);
-    message_filters::Subscriber<sensor_msgs::CameraInfo> info_sub(nh, "usb_cam/camera_info", 1);
+//    cv::namedWindow("view");
+//    cv::startWindowThread();
+    message_filters::Subscriber<sensor_msgs::Image> image_sub(nh, "/raspicam_node/image_rect_color", 1);
+    message_filters::Subscriber<sensor_msgs::CameraInfo> info_sub(nh, "raspicam_node/camera_info", 1);
     message_filters::TimeSynchronizer<sensor_msgs::Image, sensor_msgs::CameraInfo> sync(image_sub, info_sub, 10);
     sync.registerCallback(boost::bind(&imageCallback, _1, _2));
 //  image_transport::ImageTransport it(nh);
 //  image_transport::Subscriber sub = it.subscribe("usb_cam/image_raw", 1, imageCallback);
     ros::spin();
-    cv::destroyWindow("view");
+//    cv::destroyWindow("view");
 }

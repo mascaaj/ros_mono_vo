@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ros_mono_vo)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
@@ -15,17 +15,20 @@ find_package(catkin REQUIRED COMPONENTS
   tf
 )
 
+find_package(OpenCV 3.0 REQUIRED)
+
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES ${PROJECT_NAME}
 )
 
 include_directories(
-# include
+ include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 add_executable(mono_vo_node src/mono_vo.cpp)
-target_link_libraries(mono_vo_node ${catkin_LIBRARIES})
+target_link_libraries(mono_vo_node ${OpenCV_LIBS} ${catkin_LIBRARIES})
 
 
